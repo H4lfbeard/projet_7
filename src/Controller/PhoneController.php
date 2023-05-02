@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 class PhoneController extends AbstractController
 {
     /**
-     * @Route("/api/phones", name="app_phone")
+     * @Route("/api/phones", name="app_phone", methods={"GET"})
      */
     public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterface $serializer): JsonResponse
     {
