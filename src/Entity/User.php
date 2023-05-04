@@ -42,11 +42,11 @@ class User
     private $email;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Customer::class, inversedBy="users")
+     * @ORM\ManyToOne(targetEntity=Costumer::class, inversedBy="users")
      * @ORM\JoinColumn(nullable=false)
      * @Groups({"getUsers"})
      */
-    private $customer;
+    private $costumer;
 
     public function getId(): ?int
     {
@@ -89,14 +89,14 @@ class User
         return $this;
     }
 
-    public function getCustomer(): ?Customer
+    public function getCostumer(): ?Costumer
     {
-        return $this->customer;
+        return $this->costumer;
     }
 
-    public function setCustomer(?Customer $customer): self
+    public function setCostumer(?Costumer $costumer): self
     {
-        $this->customer = $customer;
+        $this->costumer = $costumer;
 
         return $this;
     }

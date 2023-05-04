@@ -1,3 +1,19 @@
 #index:
 #    path: /
 #    controller: App\Controller\DefaultController::index
+
+api_login_check:
+    path: /api/login_check
+# A SUPPRIMER SI CA NE MARCHE PAS
+app_costumers:
+    path: /api/costumer
+    methods: GET
+    controller: App\Controller\UserController::getCostumer
+app_users:
+    path: /api/user
+    methods: GET
+    controller: App\Controller\UserController::getAllCostumerUsers
+app_user_detail:
+    path: /api/user/{id}
+    methods: GET
+    controller: App\Controller\UserController::getUserDetails

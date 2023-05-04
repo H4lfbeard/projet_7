@@ -3,9 +3,9 @@
 namespace App\Controller;
 
 use App\Repository\UserRepository;
-use App\Repository\CustomerRepository;
+use App\Repository\CostumerRepository;
 use App\Entity\User;
-use App\Entity\Customer;
+use App\Entity\Costumer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -15,84 +15,111 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Security\Authentication\Token\JWTUserToken;
 
 
 class UserController extends AbstractController
 {
 
-    // FONCTIONS LIÉES AUX CUSTOMERS
-    /**
-     * @Route("api/customer", name="app_customer", methods={"GET"})
-     */
-    public function getAllCustomers(CustomerRepository $customerRepository, SerializerInterface $serializer): JsonResponse
-    {
-        $customerList = $customerRepository->findAll();
-
-        $jsonCustomerList = $serializer->serialize($customerList, 'json', ['groups' => 'getUsers']);
-        return new JsonResponse($jsonCustomerList, Response::HTTP_OK, [], true);
-    }
+    // FONCTIONS LIÉES AUX COSTUMERS
 
     /**
-     * @Route("api/customer/{id}", name="detailCustomer", methods={"GET"})
+     * @Route("api/costumer", name="app_costumer", methods={"GET"})
      */
-    public function getDetailCustomer(Customer $customer, SerializerInterface $serializer): JsonResponse 
+    public function getCostumer(CostumerRepository $costumerRepository, SerializerInterface $serializer, TokenStorageInterface $tokenStorage): JsonResponse
     {
-        $jsonCustomer = $serializer->serialize($customer, 'json', ['groups' => 'getUsers']);
-        return new JsonResponse($jsonCustomer, Response::HTTP_OK, [], true);
-    }
-
-    // FONCTIONS LIÉES AUX USERS DES CUSTOMER
-    /**
-     * @Route("api/customer/{id}/users", name="customerUsers", methods={"GET"})
-     */
-    public function getCustomerUsers(Customer $customer, SerializerInterface $serializer): JsonResponse 
-    {
-        $userList = $customer->getUsers();
+        $user = $tokenStorage->getToken()->getUser();
+        $costumerId = $user->getId();
+        $costumer = $costumerRepository->find($costumerId);
     
-        $jsonUserList = $serializer->serialize($userList, 'json', ['groups' => 'getUsers']);
-        return new JsonResponse($jsonUserList, Response::HTTP_OK, [], true);
-    }
-
-    // NON FONCTIONNEL, A LIER AVEC LE TOKEN D'IDENTIFICATION
-    /**
-     * @Route("api/customer/users/{id}", name="detailCustomerUser", methods={"GET"})
-     */
-    public function getDetailCustomerUser(int $userId, Customer $customer, User $user, SerializerInterface $serializer): JsonResponse
-    {
-        dd($user);
-        // On vérifie que le user appartient bien au customer
-        if ($user->getCustomer() !== $customer) {
-            throw $this->createNotFoundException('Cette utilisateur ne fait pas partie de la liste du client');
+        // Vérifiez que l'entité a bien été trouvée
+        if (!$costumer) {
+            throw $this->createNotFoundException('Costumer not found');
         }
-    
-        $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getUsers']);
-        return new JsonResponse($jsonUser, Response::HTTP_OK, [], true);
+
+        $jsonCostumer = $serializer->serialize($costumer, 'json', ['groups' => 'getUsers']);
+        return new JsonResponse($jsonCostumer, Response::HTTP_OK, [], true);
     }
 
-    // FONCTIONS LIÉES AUX USERS
+    // PAS CERTAIN DE DEVOIR GARDER CES FONCTIONS ?
+    // /**
+    //  * @Route("api/costumers", name="app_costumers", methods={"GET"})
+    //  */
+    // public function getAllCostumers(CostumerRepository $costumerRepository, SerializerInterface $serializer): JsonResponse
+    // {
+    //     $costumerList = $costumerRepository->findAll();
+
+    //     $jsonCostumerList = $serializer->serialize($costumerList, 'json', ['groups' => 'getUsers']);
+    //     return new JsonResponse($jsonCostumerList, Response::HTTP_OK, [], true);
+    // }
+
+    // /**
+    //  * @Route("api/costumer/{id}", name="detailCostumer", methods={"GET"})
+    //  */
+    // public function getDetailCostumer(Costumer $costumer, SerializerInterface $serializer): JsonResponse 
+    // {
+    //     $jsonCostumer = $serializer->serialize($costumer, 'json', ['groups' => 'getUsers']);
+    //     return new JsonResponse($jsonCostumer, Response::HTTP_OK, [], true);
+    // }
+
+
+    // FONCTIONS LIÉES AUX USERS DES COSTUMER
+
     /**
      * @Route("api/users", name="app_user", methods={"GET"})
      */
-    public function getAllUsers(UserRepository $userRepository, SerializerInterface $serializer): JsonResponse
+    public function getAllCostumerUsers(CostumerRepository $costumerRepository, SerializerInterface $serializer, TokenStorageInterface $tokenStorage): JsonResponse
     {
-        $userList = $userRepository->findAll();
+        $user = $tokenStorage->getToken()->getUser();
+        $costumerId = $user->getId();
+        $costumer = $costumerRepository->find($costumerId);
 
-        $jsonUserList = $serializer->serialize($userList, 'json', ['groups' => 'getUsers']);
-        return new JsonResponse($jsonUserList, Response::HTTP_OK, [], true);
+        if (!$costumer) {
+            throw $this->createNotFoundException('Costumer not found');
+        }
+
+        $users = $costumer->getUsers(); // récupère les utilisateurs liés à ce costumer
+        $jsonUsers = $serializer->serialize($users, 'json', ['groups' => 'getUsers']);
+
+        return new JsonResponse($jsonUsers, Response::HTTP_OK, [], true);
     }
 
     /**
-     * @Route("/api/users/{id}", name="detailUser", methods={"GET"})
+     * @Route("/api/user/{id}", name="app_user_detail", methods={"GET"})
      */
-    public function getDetailUser(User $user, SerializerInterface $serializer): JsonResponse 
+    public function getUserDetails(int $id, UserRepository $userRepository, SerializerInterface $serializer): JsonResponse
     {
+        $user = $userRepository->find($id);
+
+        if (!$user) {
+            throw $this->createNotFoundException('User not found');
+        }
+
         $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getUsers']);
         return new JsonResponse($jsonUser, Response::HTTP_OK, [], true);
     }
 
+
+    // FONCTIONS LIÉES AUX USERS
+
+    // /**
+    //  * @Route("api/users", name="app_user", methods={"GET"})
+    //  */
+    // public function getAllUsers(UserRepository $userRepository, SerializerInterface $serializer): JsonResponse
+    // {
+    //     $userList = $userRepository->findAll();
+
+    //     $jsonUserList = $serializer->serialize($userList, 'json', ['groups' => 'getUsers']);
+    //     return new JsonResponse($jsonUserList, Response::HTTP_OK, [], true);
+    // }
+
+
     /**
-     * @Route("/api/users/{id}", name="deleteUser", methods={"DELETE"})
+     * @Route("/api/user/{id}", name="deleteUser", methods={"DELETE"})
+     * @IsGranted("ROLE_USER", message="Vous n'avez pas les droits suffisants pour supprimer un utilisateur")
      */
     public function deleteUser(User $user, EntityManagerInterface $em): JsonResponse 
     {
@@ -104,24 +131,26 @@ class UserController extends AbstractController
 
     /**
      * @Route("/api/users", name="createUser", methods={"POST"})
+     * @IsGranted("ROLE_USER", message="Vous n'avez pas les droits suffisants pour créer un utilisateur")
      */
-    public function createUser(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator): JsonResponse
+    public function createUser(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        $customerId = $data['customerId'] ?? null;
+        $user = $tokenStorage->getToken()->getUser();
+        $costumerId = $user->getId();
         
-        if (!$customerId) {
-            return new JsonResponse(['error' => 'customerId is required'], Response::HTTP_BAD_REQUEST);
+        if (!$costumerId) {
+            return new JsonResponse(['error' => 'costumerId is required'], Response::HTTP_BAD_REQUEST);
         }
         
-        $customer = $em->getRepository(Customer::class)->find($customerId);
+        $costumer = $em->getRepository(Costumer::class)->find($costumerId);
         
-        if (!$customer) {
-            return new JsonResponse(['error' => sprintf('Customer with ID %d not found', $customerId)], Response::HTTP_NOT_FOUND);
+        if (!$costumer) {
+            return new JsonResponse(['error' => sprintf('Costumer with ID %d not found', $costumerId)], Response::HTTP_NOT_FOUND);
         }
         
         $user = $serializer->deserialize($request->getContent(), User::class, 'json');
-        $user->setCustomer($customer);
+        $user->setCostumer($costumer);
 
         // On vérifie les erreurs
         $errors = $validator->validate($user);
@@ -134,7 +163,7 @@ class UserController extends AbstractController
         
         $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getUsers']);
 
-        $location = $urlGenerator->generate('detailUser', ['id' => $user->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+        $location = $urlGenerator->generate('app_user_detail', ['id' => $user->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
         
         return new JsonResponse($jsonUser, Response::HTTP_CREATED, ["Location" => $location], true);
     }
