@@ -4,8 +4,19 @@ namespace App\Entity;
 
 use App\Repository\PhoneRepository;
 use Doctrine\ORM\Mapping as ORM;
+use JMS\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
+use Hateoas\Configuration\Annotation as Hateoas;
 
 /**
+ * @Hateoas\Relation(
+ *      "self",
+ *      href = @Hateoas\Route (
+ *      "detailPhone",
+ *      parameters = { "id" = "expr(object.getId())" }
+ *      )
+ * )
+ * 
  * @ORM\Entity(repositoryClass=PhoneRepository::class)
  */
 class Phone

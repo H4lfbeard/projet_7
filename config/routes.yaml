@@ -17,3 +17,11 @@ app_user_detail:
     path: /api/user/{id}
     methods: GET
     controller: App\Controller\UserController::getUserDetails
+app_phone:
+    path: /api/phones
+    methods: GET
+    controller: App\Controller\PhoneController::getAllPhones
+detailPhone:
+    path: /api/phone/{id}
+    methods: GET
+    controller: App\Controller\PhoneController::getDetailPhone

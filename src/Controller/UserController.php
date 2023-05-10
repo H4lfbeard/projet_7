@@ -9,7 +9,8 @@ use App\Entity\Costumer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\SerializerInterface;
+use JMS\Serializer\SerializerInterface;
+use JMS\Serializer\SerializationContext;
 use Symfony\Component\HttpFoundation\Response;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -40,38 +41,17 @@ class UserController extends AbstractController
             throw $this->createNotFoundException('Costumer not found');
         }
 
-        $jsonCostumer = $serializer->serialize($costumer, 'json', ['groups' => 'getUsers']);
+        $context = SerializationContext::create()->setGroups(["getUsers"]);
+        $jsonCostumer = $serializer->serialize($costumer, 'json', $context);
         return new JsonResponse($jsonCostumer, Response::HTTP_OK, [], true);
     }
-
-    // PAS CERTAIN DE DEVOIR GARDER CES FONCTIONS ?
-    // /**
-    //  * @Route("api/costumers", name="app_costumers", methods={"GET"})
-    //  */
-    // public function getAllCostumers(CostumerRepository $costumerRepository, SerializerInterface $serializer): JsonResponse
-    // {
-    //     $costumerList = $costumerRepository->findAll();
-
-    //     $jsonCostumerList = $serializer->serialize($costumerList, 'json', ['groups' => 'getUsers']);
-    //     return new JsonResponse($jsonCostumerList, Response::HTTP_OK, [], true);
-    // }
-
-    // /**
-    //  * @Route("api/costumer/{id}", name="detailCostumer", methods={"GET"})
-    //  */
-    // public function getDetailCostumer(Costumer $costumer, SerializerInterface $serializer): JsonResponse 
-    // {
-    //     $jsonCostumer = $serializer->serialize($costumer, 'json', ['groups' => 'getUsers']);
-    //     return new JsonResponse($jsonCostumer, Response::HTTP_OK, [], true);
-    // }
-
 
     // FONCTIONS LIÉES AUX USERS DES COSTUMER
 
     /**
      * @Route("api/users", name="app_user", methods={"GET"})
      */
-    public function getAllCostumerUsers(CostumerRepository $costumerRepository, SerializerInterface $serializer, TokenStorageInterface $tokenStorage): JsonResponse
+    public function getAllCostumerUsers(CostumerRepository $costumerRepository, SerializerInterface $serializer, TokenStorageInterface $tokenStorage, Request $request): JsonResponse
     {
         $user = $tokenStorage->getToken()->getUser();
         $costumerId = $user->getId();
@@ -82,7 +62,8 @@ class UserController extends AbstractController
         }
 
         $users = $costumer->getUsers(); // récupère les utilisateurs liés à ce costumer
-        $jsonUsers = $serializer->serialize($users, 'json', ['groups' => 'getUsers']);
+        $context = SerializationContext::create()->setGroups(["getUsers"]);
+        $jsonUsers = $serializer->serialize($users, 'json', $context);
 
         return new JsonResponse($jsonUsers, Response::HTTP_OK, [], true);
     }
@@ -98,24 +79,10 @@ class UserController extends AbstractController
             throw $this->createNotFoundException('User not found');
         }
 
-        $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getUsers']);
+        $context = SerializationContext::create()->setGroups(["getUsers"]);
+        $jsonUser = $serializer->serialize($user, 'json', $context);
         return new JsonResponse($jsonUser, Response::HTTP_OK, [], true);
     }
-
-
-    // FONCTIONS LIÉES AUX USERS
-
-    // /**
-    //  * @Route("api/users", name="app_user", methods={"GET"})
-    //  */
-    // public function getAllUsers(UserRepository $userRepository, SerializerInterface $serializer): JsonResponse
-    // {
-    //     $userList = $userRepository->findAll();
-
-    //     $jsonUserList = $serializer->serialize($userList, 'json', ['groups' => 'getUsers']);
-    //     return new JsonResponse($jsonUserList, Response::HTTP_OK, [], true);
-    // }
-
 
     /**
      * @Route("/api/user/{id}", name="deleteUser", methods={"DELETE"})
@@ -161,7 +128,8 @@ class UserController extends AbstractController
         $em->persist($user);
         $em->flush();
         
-        $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getUsers']);
+        $context = SerializationContext::create()->setGroups(["getUsers"]);
+        $jsonUser = $serializer->serialize($user, 'json', $context);
 
         $location = $urlGenerator->generate('app_user_detail', ['id' => $user->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
         
