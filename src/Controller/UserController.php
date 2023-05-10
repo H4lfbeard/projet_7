@@ -20,6 +20,8 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\Authentication\Token\JWTUserToken;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use OpenApi\Annotations as OA;
 
 
 class UserController extends AbstractController
@@ -28,6 +30,8 @@ class UserController extends AbstractController
     // FONCTIONS LIÉES AUX COSTUMERS
 
     /**
+     * Cette méthode permet de récupérer les détails liée à votre profil client
+     * @OA\Tag(name="Costumer")
      * @Route("api/costumer", name="app_costumer", methods={"GET"})
      */
     public function getCostumer(CostumerRepository $costumerRepository, SerializerInterface $serializer, TokenStorageInterface $tokenStorage): JsonResponse
@@ -49,6 +53,8 @@ class UserController extends AbstractController
     // FONCTIONS LIÉES AUX USERS DES COSTUMER
 
     /**
+     * Cette méthode permet de récupérer la liste des utilisateurs liée à votre profil client
+     * @OA\Tag(name="Users")
      * @Route("api/users", name="app_user", methods={"GET"})
      */
     public function getAllCostumerUsers(CostumerRepository $costumerRepository, SerializerInterface $serializer, TokenStorageInterface $tokenStorage, Request $request): JsonResponse
@@ -69,6 +75,8 @@ class UserController extends AbstractController
     }
 
     /**
+     * Cette méthode permet de récupérer les détails d'une utilisateur
+     * @OA\Tag(name="Users")
      * @Route("/api/user/{id}", name="app_user_detail", methods={"GET"})
      */
     public function getUserDetails(int $id, UserRepository $userRepository, SerializerInterface $serializer): JsonResponse
@@ -85,6 +93,8 @@ class UserController extends AbstractController
     }
 
     /**
+     * Cette méthode permet de supprimer un utilisateur
+     * @OA\Tag(name="Users")
      * @Route("/api/user/{id}", name="deleteUser", methods={"DELETE"})
      * @IsGranted("ROLE_USER", message="Vous n'avez pas les droits suffisants pour supprimer un utilisateur")
      */
@@ -97,6 +107,8 @@ class UserController extends AbstractController
     }
 
     /**
+     * Cette méthode permet de créer un utilisateur liée à votre profil client
+     * @OA\Tag(name="Users")
      * @Route("/api/users", name="createUser", methods={"POST"})
      * @IsGranted("ROLE_USER", message="Vous n'avez pas les droits suffisants pour créer un utilisateur")
      */
