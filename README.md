@@ -1,8 +1,5 @@
 # Configuration
-## Requis
-PHP >= 8.1.0, Symfony >= 6.2, Composer >= 2.3.7
-## Recommandé 
-Symfony CLI >= 5.4.13, MySQL 8.0.29, Wampserver64, GitBash, Postman
+
 # Installation du projet  
 - Clonez le repo git 
 - Lancez la commande "composer install"
@@ -30,7 +27,7 @@ php bin/console doctrine:fixtures:load
 ```
 ## La documentation
 - Vous avez maintenant accès à l'API et nottamment à la page 127.0.0.1:8000/api/doc qui vous donne accès à la documentation des routes de l'application.
-- La première chose à faire sera de vous connecter. Pour se faire, appuyez sur le bouton "Authorize" en haut à droite. Un utilisateur par défaut est utilisé (username: e@mail0.fr, password: password). 
+- La première chose à faire sera de vous connecter. Pour se faire, appuyez sur le bouton "Authorize" en haut à droite. Un utilisateur par défaut est utilisé (username: client n°1, password: password). 
 - Si vous n'avez pas chargé de fixtures, cela ne fonctionnera pas directement. Il faudra d'abord créer cet utilisateur. 
 - Vous pouvez modifier ces informations dans config/packages/nelmio_api_doc.yaml.  
 - Ces credentials ne doivent cependant JAMAIS être correctes pour un environnement de production. 
