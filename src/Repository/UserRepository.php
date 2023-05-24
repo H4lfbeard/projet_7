@@ -39,28 +39,41 @@ class UserRepository extends ServiceEntityRepository
         }
     }
 
-//    /**
-//     * @return User[] Returns an array of User objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('u.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function findByWithPagination($costumerId, $page, $limit)
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->join('u.costumer', 'c') // Jointure avec la table costumer
+            ->where('c.id = :costumerId')
+            ->setParameter('costumerId', $costumerId)
+            ->orderBy('c.id', 'ASC') // Tri par costumerId en ordre croissant
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
 
-//    public function findOneBySomeField($value): ?User
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        return $qb->getQuery()->getResult();
+    }
+
+//    /**
+    //     * @return User[] Returns an array of User objects
+    //     */
+    //    public function findByExampleField($value): array
+    //    {
+    //        return $this->createQueryBuilder('u')
+    //            ->andWhere('u.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->orderBy('u.id', 'ASC')
+    //            ->setMaxResults(10)
+    //            ->getQuery()
+    //            ->getResult()
+    //        ;
+    //    }
+
+    // public function findOneBySomeField($costumer):  ? User
+    // {
+    //     return $this->createQueryBuilder('u')
+    //         ->andWhere('u.exampleField = :val')
+    //         ->setParameter('val', $costumer)
+    //         ->getQuery()
+    //         ->getOneOrNullResult()
+    //     ;
+    // }
 }

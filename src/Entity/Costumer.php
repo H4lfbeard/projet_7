@@ -6,11 +6,9 @@ use App\Repository\CostumerRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use JMS\Serializer\Annotation\Groups;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use JMS\Serializer\Annotation\Groups;
-use Symfony\Component\Validator\Constraints as Assert;
-use Hateoas\Configuration\Annotation as Hateoas;
 
 /**
  * @ORM\Entity(repositoryClass=CostumerRepository::class)
@@ -52,17 +50,17 @@ class Costumer implements UserInterface, PasswordAuthenticatedUserInterface
         $this->users = new ArrayCollection();
     }
 
-    public function getId(): ?int
+    public function getId():  ? int
     {
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getName() :  ? string
     {
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(string $name) : self
     {
         $this->name = $name;
 
@@ -137,7 +135,7 @@ class Costumer implements UserInterface, PasswordAuthenticatedUserInterface
      *
      * @see UserInterface
      */
-    public function getSalt(): ?string
+    public function getSalt():  ? string
     {
         return null;
     }
@@ -154,9 +152,20 @@ class Costumer implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @return Collection<int, User>
      */
-    public function getUsers(): Collection
+    public function getUsers() : Collection
     {
         return $this->users;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getUsersPaginated($page, $limit): Collection
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+        return $qb->getQuery()->getResult(users);
     }
 
     public function addUser(User $user): self

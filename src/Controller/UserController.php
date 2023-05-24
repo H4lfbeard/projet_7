@@ -2,27 +2,23 @@
 
 namespace App\Controller;
 
-use App\Repository\UserRepository;
-use App\Repository\CostumerRepository;
-use App\Entity\User;
 use App\Entity\Costumer;
+use App\Entity\User;
+use App\Repository\CostumerRepository;
+use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use JMS\Serializer\SerializationContext;
+use JMS\Serializer\SerializerInterface;
+use OpenApi\Annotations as OA;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Routing\Annotation\Route;
-use JMS\Serializer\SerializerInterface;
-use JMS\Serializer\SerializationContext;
-use Symfony\Component\HttpFoundation\Response;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
-use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Lexik\Bundle\JWTAuthenticationBundle\Security\Authentication\Token\JWTUserToken;
-use Nelmio\ApiDocBundle\Annotation\Model;
-use OpenApi\Annotations as OA;
-
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UserController extends AbstractController
 {
@@ -39,7 +35,7 @@ class UserController extends AbstractController
         $user = $tokenStorage->getToken()->getUser();
         $costumerId = $user->getId();
         $costumer = $costumerRepository->find($costumerId);
-    
+
         // Vérifiez que l'entité a bien été trouvée
         if (!$costumer) {
             throw $this->createNotFoundException('Costumer not found');
@@ -57,8 +53,11 @@ class UserController extends AbstractController
      * @OA\Tag(name="Users")
      * @Route("api/users", name="app_user", methods={"GET"})
      */
-    public function getAllCostumerUsers(CostumerRepository $costumerRepository, SerializerInterface $serializer, TokenStorageInterface $tokenStorage, Request $request): JsonResponse
+    public function getAllCostumerUsers(CostumerRepository $costumerRepository, SerializerInterface $serializer, TokenStorageInterface $tokenStorage, Request $request, UserRepository $userRepository): JsonResponse
     {
+        $page = $request->get('page', 1);
+        $limit = $request->get('limit', 5);
+
         $user = $tokenStorage->getToken()->getUser();
         $costumerId = $user->getId();
         $costumer = $costumerRepository->find($costumerId);
@@ -67,7 +66,7 @@ class UserController extends AbstractController
             throw $this->createNotFoundException('Costumer not found');
         }
 
-        $users = $costumer->getUsers(); // récupère les utilisateurs liés à ce costumer
+        $users = $userRepository->findByWithPagination($costumerId, $page, $limit); // récupère les utilisateurs liés à ce costumer
         $context = SerializationContext::create()->setGroups(["getUsers"]);
         $jsonUsers = $serializer->serialize($users, 'json', $context);
 
@@ -98,7 +97,7 @@ class UserController extends AbstractController
      * @Route("/api/user/{id}", name="deleteUser", methods={"DELETE"})
      * @IsGranted("ROLE_USER", message="Vous n'avez pas les droits suffisants pour supprimer un utilisateur")
      */
-    public function deleteUser(User $user, EntityManagerInterface $em): JsonResponse 
+    public function deleteUser(User $user, EntityManagerInterface $em): JsonResponse
     {
         $em->remove($user);
         $em->flush();
@@ -117,17 +116,17 @@ class UserController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $user = $tokenStorage->getToken()->getUser();
         $costumerId = $user->getId();
-        
+
         if (!$costumerId) {
             return new JsonResponse(['error' => 'costumerId is required'], Response::HTTP_BAD_REQUEST);
         }
-        
+
         $costumer = $em->getRepository(Costumer::class)->find($costumerId);
-        
+
         if (!$costumer) {
             return new JsonResponse(['error' => sprintf('Costumer with ID %d not found', $costumerId)], Response::HTTP_NOT_FOUND);
         }
-        
+
         $user = $serializer->deserialize($request->getContent(), User::class, 'json');
         $user->setCostumer($costumer);
 
@@ -136,15 +135,15 @@ class UserController extends AbstractController
         if ($errors->count() > 0) {
             return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
         }
-        
+
         $em->persist($user);
         $em->flush();
-        
+
         $context = SerializationContext::create()->setGroups(["getUsers"]);
         $jsonUser = $serializer->serialize($user, 'json', $context);
 
         $location = $urlGenerator->generate('app_user_detail', ['id' => $user->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
-        
+
         return new JsonResponse($jsonUser, Response::HTTP_CREATED, ["Location" => $location], true);
     }
 
